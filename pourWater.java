@@ -1,18 +1,194 @@
+import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+
 import java.util.Queue;
 import java.util.LinkedList; 
 
-public class pourWater{
+public class pourWater extends Application{
+    int siteI;
+
+    public void start(Stage primaryStage) throws Exception{
+        //整体布局
+        BorderPane borderPane = new BorderPane();
+        //上部布局
+        HBox hbox = new HBox(10);
+        // 创建文本字段
+        TextField textTop = new TextField();
+        textTop.setPromptText("请输入瓶子个数");
+        // 创建按钮
+        Button buttonTop = new Button("瓶子个数提交");
+
+        hbox.getChildren().addAll(textTop,buttonTop);
+        // 上部布局加入整体布局中
+        borderPane.setTop(hbox);
+
+        // 创建场景并设置舞台
+        Scene scene = new Scene(borderPane, 1000, 500);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("倒水问题");
+        primaryStage.show();
+
+        //button响应区域
+        // 为按钮添加事件处理
+        buttonTop.setOnAction(event -> showCups(textTop,borderPane));
+    }
+    //显示瓶子
+    public void showCups(TextField str1,BorderPane borderPane){
+        int cupsNum = Integer.parseInt(str1.getText());
+        
+        Cups cups = new Cups(cupsNum);
+
+        AnchorPane anchorPane = new AnchorPane();
+        anchorPane.setMinSize(900, 400);
+        //一行当瓶子，一行当水
+        Rectangle [][] cupsFX = new Rectangle[2][cupsNum];
+        TextField [][] cupSetting = new TextField[2][cupsNum];
+        for(int i = 0;i < cupsNum; i++){
+            cupsFX[0][i] = new Rectangle(900/cupsNum,200);
+            cupsFX[1][i] = new Rectangle(900/cupsNum,100);
+            cupSetting[0][i] = new TextField();
+            cupSetting[0][i].setPromptText("杯子容量");
+            cupSetting[0][i].setPrefWidth(900/cupsNum);
+            cupSetting[1][i] = new TextField();
+            cupSetting[1][i].setPromptText("默认水量");
+            cupSetting[1][i].setPrefWidth(900/cupsNum);
+            
+            cupsFX[0][i].setFill(Color.GRAY); 
+            cupsFX[1][i].setFill(Color.BLUE);
+
+            // 锚定在底部中央
+            AnchorPane.setBottomAnchor(cupsFX[0][i], 60.0);
+            AnchorPane.setLeftAnchor(cupsFX[0][i], 10.0+i*(900/cupsNum+10));
+            AnchorPane.setBottomAnchor(cupsFX[1][i], 60.0);
+            AnchorPane.setLeftAnchor(cupsFX[1][i], 10.0+i*(900/cupsNum+10));
+
+            AnchorPane.setBottomAnchor(cupSetting[0][i], 30.0);
+            AnchorPane.setLeftAnchor(cupSetting[0][i], 10.0+i*(900/cupsNum+10));
+            AnchorPane.setBottomAnchor(cupSetting[1][i], 0.0);
+            AnchorPane.setLeftAnchor(cupSetting[1][i], 10.0+i*(900/cupsNum+10));
+
+            
+            anchorPane.getChildren().add(cupsFX[0][i]);
+            anchorPane.getChildren().add(cupsFX[1][i]);
+            anchorPane.getChildren().add(cupSetting[0][i]);
+            anchorPane.getChildren().add(cupSetting[1][i]);
+        }
+        Button submitBtn = new Button("水杯设置提交");
+        AnchorPane.setBottomAnchor(submitBtn, 0.0);
+        AnchorPane.setRightAnchor(submitBtn, 0.0);
+        anchorPane.getChildren().add(submitBtn);
+        
+        
+        borderPane.setCenter(anchorPane);
+       
+
+        submitBtn.setOnAction(event -> {
+            int maxNub = 0;
+            Integer [] cupsField = new Integer[cupsNum];
+            Integer [] oriWaterField = new Integer[cupsNum];
+            //获取最大值，以最大值作为200像素来同比缩放
+            for(int i=0;i < cupsNum; i++){
+                if(Integer.parseInt(cupSetting[0][i].getText()) > maxNub){
+                    maxNub = Integer.parseInt(cupSetting[0][i].getText());
+                }
+            }
+            double rate = 200.0/maxNub;
+            for(int i=0;i < cupsNum; i++){
+                cupsFX[0][i].setHeight(Double.parseDouble(cupSetting[0][i].getText())*rate);
+                cupsFX[1][i].setHeight(Double.parseDouble(cupSetting[1][i].getText())*rate);
+                cupsField[i] = Integer.parseInt(cupSetting[0][i].getText());
+                oriWaterField[i] = Integer.parseInt(cupSetting[1][i].getText());
+            }
+            cups.setHeightWaterByFX(cupsField);
+            cups.setOriWaterByFX(oriWaterField);
+            cups.setVisitList();
+            baginRecycle(rate,cups,borderPane,cupsFX);
+        });
+        
+
+    }
+    //启动运算，需要杯子的数量，各个杯子的初始数据，需要的水量
+    public void baginRecycle(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX){
+        VBox vbox = new VBox();
+        TextField textTop2 = new TextField();
+        textTop2.setPromptText("请输入您需要的水量");
+        
+        // 创建按钮
+        Button buttonRight = new Button("开始运算");
+        
+        vbox.getChildren().addAll(textTop2,buttonRight);
+        borderPane.setRight(vbox);
+
+
+        buttonRight.setOnAction(e->{
+            int finalWater = Integer.parseInt(textTop2.getText());
+            cups.setFinalWaterByFX(finalWater);
+            cups.beginRecycle();
+            showFinal(rate,cups,borderPane,cupsFX);
+        });
+        
+        
+
+    }
+    public void showFinal(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX){
+        VBox vbox = new VBox();
+        // 创建按钮
+        Button buttonRight = new Button("按步显示最短路径");
+        vbox.getChildren().addAll(buttonRight);
+        borderPane.setRight(vbox);
+        ArrayList<Integer[]> minRode =  cups.minRode.get(cups.minRode.size()-1);
+        siteI = minRode.size()-2;
+        buttonRight.setOnAction(e->{
+            if(cups.minRode.size()==0){
+                Alert alert = new Alert(AlertType.WARNING, "无法满足您的需求", ButtonType.OK);
+                alert.setTitle("警告");
+                alert.setHeaderText("警告信息");
+                // 显示警告框
+                alert.showAndWait();
+                borderPane.getChildren().remove(borderPane.getCenter());
+                borderPane.getChildren().remove(borderPane.getRight());
+            }
+            if(siteI==-1){
+                Alert alert = new Alert(AlertType.WARNING, "路径已显示结束", ButtonType.OK);
+                alert.setTitle("警告");
+                alert.setHeaderText("警告信息");
+                // 显示警告框
+                alert.showAndWait();
+                borderPane.getChildren().remove(borderPane.getCenter());
+                borderPane.getChildren().remove(borderPane.getRight());
+            }
+
+            for(int j=0;j<cups.cupsNum;j++){
+                cupsFX[1][j].setHeight(minRode.get(siteI)[j]*rate);
+            }
+            siteI--;
+            
+        });
+    }
 
     public static void main(String[] args) {
-        Cups cups = new Cups();
-        cups.beginRecycle();
+        launch(args);
+        // Cups cups = new Cups();
+        // cups.beginRecycle();
     }
 }
 
@@ -28,6 +204,7 @@ class Cups{
     public int currectSum;//当前的总水量
     public int currectTimes;//当前的次数
     public int finalWater;//预期的水量
+    public ArrayList<ArrayList<Integer[]>> minRode;//最短路径
 
     //初始化
     Cups(){
@@ -39,7 +216,35 @@ class Cups{
         setVisitList();
         setFinalWater();
     }
+    //-----------可视化调用接口------------------------------
+    Cups(int cupsNum){
+        this.cupsNum = cupsNum;
+    }
 
+    public void setFinalWaterByFX(int finalWater){
+        this.finalWater = finalWater;
+    }
+
+    public void setHeightWaterByFX(Integer[] heightWater){
+        this.heightWater = new Integer[this.cupsNum];
+        for(int i = 0;i < this.cupsNum; i++){
+            this.heightWater[i] = heightWater[i];
+        }
+
+    }
+
+    public void setOriWaterByFX(Integer[] oriWater){
+        this.currectSum = 0;
+        this.oriWater = new Integer[this.cupsNum];
+        this.currectNum = new Integer[this.cupsNum];
+        for(int i = 0;i < this.cupsNum; i++){
+            this.oriWater[i] = oriWater[i];
+            this.currectNum[i] = this.oriWater[i];
+            this.currectSum += this.currectNum[i];
+        }
+    
+    }
+  //-----------------------------------------
     public void setFinalWater(){
         System.out.println("请输入您需要的水量：");
         Scanner scanner = new Scanner(System.in); 
@@ -298,14 +503,24 @@ class Cups{
                 }
         }
         System.out.println("--------------方案展示----------------");
+        minRode = new ArrayList<ArrayList<Integer[]>>();
         for(int i=0;i<Rodes.size();i++){
+            ArrayList<Integer[]> newRode = new ArrayList<>();
             for(int j=0;j<Rodes.get(i).size();j++){
+                Integer[] newNode = new Integer[this.cupsNum];
                 for(int k=0;k<this.cupsNum;k++){
                     System.out.print(Rodes.get(i).get(j)[k]+" ");
+                    newNode[k] = Rodes.get(i).get(j)[k];
                 }
+                newRode.add(newNode);
                 System.out.print("<===");
             }
-            System.out.println("0 0 0");
+            newRode.add(this.oriWater);
+            minRode.add(newRode);
+            for(int m = 0;m<this.cupsNum;m++){
+                System.out.print(this.oriWater[m]+" ");    
+            }
+            System.out.println("");
         }
         if(Rodes.size()==0){
             System.out.println("无法满足您的要求！");
