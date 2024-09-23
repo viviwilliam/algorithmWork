@@ -2,7 +2,11 @@ import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
+import java.util.TimerTask;
+
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -26,6 +30,7 @@ import java.util.LinkedList;
 public class pourWater extends Application{
     int siteI;
 
+    @Override
     public void start(Stage primaryStage) throws Exception{
         //整体布局
         BorderPane borderPane = new BorderPane();
@@ -121,13 +126,13 @@ public class pourWater extends Application{
             cups.setHeightWaterByFX(cupsField);
             cups.setOriWaterByFX(oriWaterField);
             cups.setVisitList();
-            baginRecycle(rate,cups,borderPane,cupsFX);
+            baginRecycle(rate,cups,borderPane,cupsFX,cupSetting);
         });
         
 
     }
     //启动运算，需要杯子的数量，各个杯子的初始数据，需要的水量
-    public void baginRecycle(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX){
+    public void baginRecycle(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX,TextField[][] cupSetting){
         VBox vbox = new VBox();
         TextField textTop2 = new TextField();
         textTop2.setPromptText("请输入您需要的水量");
@@ -143,20 +148,48 @@ public class pourWater extends Application{
             int finalWater = Integer.parseInt(textTop2.getText());
             cups.setFinalWaterByFX(finalWater);
             cups.beginRecycle();
-            showFinal(rate,cups,borderPane,cupsFX);
+            showFinal(rate,cups,borderPane,cupsFX,cupSetting);
         });
         
         
 
     }
-    public void showFinal(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX){
+    public void showFinal(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX,TextField[][] cupSetting){
         VBox vbox = new VBox();
         // 创建按钮
         Button buttonRight = new Button("按步显示最短路径");
-        vbox.getChildren().addAll(buttonRight);
+        Button buttonLast = new Button("动画显示最长路径");
+        Button buttonReset = new Button("重置");
+        vbox.getChildren().addAll(buttonRight,buttonLast,buttonReset);
         borderPane.setRight(vbox);
         ArrayList<Integer[]> minRode =  cups.minRode.get(cups.minRode.size()-1);
+        ArrayList<Integer[]> maxRode =  cups.minRode.get(0);
         siteI = minRode.size()-2;
+
+        buttonReset.setOnAction(e->{
+                borderPane.getChildren().remove(borderPane.getCenter());
+                borderPane.getChildren().remove(borderPane.getRight());
+                return;
+        });
+
+        buttonLast.setOnAction(e->{
+            Task<Void> task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    int i;
+                    for(i=maxRode.size()-2;i>=0;i--){
+                        for(int j=0;j<cups.cupsNum;j++){
+                            cupsFX[1][j].setHeight(maxRode.get(i)[j]*rate);
+                            cupSetting[0][j].setText(String.valueOf(maxRode.get(i)[j]));
+                        }
+                        Thread.sleep(500); // 后台线程中暂停
+                    }
+                    return null;
+                }
+            };
+            new Thread(task).start();
+        });
+
         buttonRight.setOnAction(e->{
             if(cups.minRode.size()==0){
                 Alert alert = new Alert(AlertType.WARNING, "无法满足您的需求", ButtonType.OK);
@@ -166,6 +199,7 @@ public class pourWater extends Application{
                 alert.showAndWait();
                 borderPane.getChildren().remove(borderPane.getCenter());
                 borderPane.getChildren().remove(borderPane.getRight());
+                return;
             }
             if(siteI==-1){
                 Alert alert = new Alert(AlertType.WARNING, "路径已显示结束", ButtonType.OK);
@@ -175,10 +209,12 @@ public class pourWater extends Application{
                 alert.showAndWait();
                 borderPane.getChildren().remove(borderPane.getCenter());
                 borderPane.getChildren().remove(borderPane.getRight());
+                return;
             }
 
             for(int j=0;j<cups.cupsNum;j++){
                 cupsFX[1][j].setHeight(minRode.get(siteI)[j]*rate);
+                cupSetting[0][j].setText(String.valueOf(minRode.get(siteI)[j]));
             }
             siteI--;
             
