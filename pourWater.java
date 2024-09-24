@@ -39,13 +39,12 @@ public class pourWater extends Application{
         textTop.setPromptText("请输入瓶子个数");
         // 创建按钮
         Button buttonTop = new Button("瓶子个数提交");
-
         hbox.getChildren().addAll(textTop,buttonTop);
         // 上部布局加入整体布局中
         borderPane.setTop(hbox);
 
         // 创建场景并设置舞台
-        Scene scene = new Scene(borderPane, 1000, 500);
+        Scene scene = new Scene(borderPane, 1100, 500);
         primaryStage.setScene(scene);
         primaryStage.setTitle("倒水问题");
         primaryStage.show();
@@ -57,7 +56,6 @@ public class pourWater extends Application{
     //显示瓶子
     public void showCups(TextField str1,BorderPane borderPane){
         int cupsNum = Integer.parseInt(str1.getText());
-        
         Cups cups = new Cups(cupsNum);
 
         AnchorPane anchorPane = new AnchorPane();
@@ -74,7 +72,6 @@ public class pourWater extends Application{
             cupSetting[1][i] = new TextField();
             cupSetting[1][i].setPromptText("默认水量");
             cupSetting[1][i].setPrefWidth(900/cupsNum);
-            
             cupsFX[0][i].setFill(Color.GRAY); 
             cupsFX[1][i].setFill(Color.BLUE);
 
@@ -83,13 +80,11 @@ public class pourWater extends Application{
             AnchorPane.setLeftAnchor(cupsFX[0][i], 10.0+i*(900/cupsNum+10));
             AnchorPane.setBottomAnchor(cupsFX[1][i], 60.0);
             AnchorPane.setLeftAnchor(cupsFX[1][i], 10.0+i*(900/cupsNum+10));
-
             AnchorPane.setBottomAnchor(cupSetting[0][i], 30.0);
             AnchorPane.setLeftAnchor(cupSetting[0][i], 10.0+i*(900/cupsNum+10));
             AnchorPane.setBottomAnchor(cupSetting[1][i], 0.0);
             AnchorPane.setLeftAnchor(cupSetting[1][i], 10.0+i*(900/cupsNum+10));
 
-            
             anchorPane.getChildren().add(cupsFX[0][i]);
             anchorPane.getChildren().add(cupsFX[1][i]);
             anchorPane.getChildren().add(cupSetting[0][i]);
@@ -98,9 +93,7 @@ public class pourWater extends Application{
         Button submitBtn = new Button("水杯设置提交");
         AnchorPane.setBottomAnchor(submitBtn, 0.0);
         AnchorPane.setRightAnchor(submitBtn, 0.0);
-        anchorPane.getChildren().add(submitBtn);
-        
-        
+        anchorPane.getChildren().add(submitBtn);        
         borderPane.setCenter(anchorPane);
        
 
@@ -164,7 +157,6 @@ public class pourWater extends Application{
             borderPane.getChildren().remove(borderPane.getRight());
             return;
         }
-        
         
         //没有结果
         if(cups.minRode.size()==0){
@@ -320,7 +312,6 @@ class Cups{
             System.out.println("请输入第"+i+"个水杯的容量：");
             this.heightWater[i] = scanner.nextInt();
         }
-
     }
 
     public void setOriWater(){
@@ -376,7 +367,6 @@ class Cups{
                     //自己的下标
                     this.currectTimes++;
                     newListNode[this.cupsNum] = this.currectTimes;
-
                     this.visitNoRepeatList.add(newNode);
                     this.currectList.offer(newListNode);
                     this.visitAllList.add(newAllNode);
@@ -402,12 +392,10 @@ class Cups{
                     //自己的下标
                     this.currectTimes++;
                     newListNode[this.cupsNum] = this.currectTimes;
-
                     this.visitNoRepeatList.add(newNode);
                     this.currectList.offer(newListNode);
                     this.visitAllList.add(newAllNode);
                 }
-
             }
             //把自己的水依次倒给其他节点
             if(this.currectNum[i] > 0){
@@ -476,19 +464,14 @@ class Cups{
                     }
                 }
             }
-
         }
-
         //如果队空就返回
         if(this.currectList.isEmpty()){
             return;
         }else{
             bsfForCups(this.currectList.element()[this.cupsNum]);
         }
-
     }
-
-
 
     public void beginRecycle(){
         if(this.currectSum == this.finalWater){
@@ -510,11 +493,9 @@ class Cups{
         this.visitAllList.add(firstNode);
         this.visitNoRepeatList.add(firstVisitNode);
         this.currectList.offer(firstVisitNode);
-
         //把第一个节点传进去，然后开始广度优先遍历
         this.currectTimes=0;
         bsfForCups(0);
-
         getRode();
     }
 
@@ -584,10 +565,5 @@ class Cups{
         if(Rodes.size()==0){
             System.out.println("无法满足您的要求！");
         }
-        
     }
-
-
-
 }
-
