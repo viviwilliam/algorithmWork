@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.TimerTask;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -23,7 +22,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-
 import java.util.Queue;
 import java.util.LinkedList; 
 
@@ -155,6 +153,31 @@ public class pourWater extends Application{
 
     }
     public void showFinal(Double rate,Cups cups, BorderPane borderPane, Rectangle[][]cupsFX,TextField[][] cupSetting){
+        //初始已经满足
+        if(cups.currectSum == cups.finalWater){
+            Alert alert = new Alert(AlertType.WARNING, "当前状态已满足要求，共经过0次倒水动作", ButtonType.OK);
+            alert.setTitle("警告");
+            alert.setHeaderText("警告信息");
+            // 显示警告框
+            alert.showAndWait();
+            borderPane.getChildren().remove(borderPane.getCenter());
+            borderPane.getChildren().remove(borderPane.getRight());
+            return;
+        }
+        
+        
+        //没有结果
+        if(cups.minRode.size()==0){
+            Alert alert = new Alert(AlertType.WARNING, "无法满足您的需求", ButtonType.OK);
+            alert.setTitle("警告");
+            alert.setHeaderText("警告信息");
+            // 显示警告框
+            alert.showAndWait();
+            borderPane.getChildren().remove(borderPane.getCenter());
+            borderPane.getChildren().remove(borderPane.getRight());
+            return;
+        }
+
         VBox vbox = new VBox();
         // 创建按钮
         Button buttonRight = new Button("按步显示最短路径");
@@ -202,7 +225,7 @@ public class pourWater extends Application{
                 return;
             }
             if(siteI==-1){
-                Alert alert = new Alert(AlertType.WARNING, "路径已显示结束", ButtonType.OK);
+                Alert alert = new Alert(AlertType.WARNING, "路径已显示结束，共经过了"+(cups.minRode.get(cups.minRode.size()-1).size()-1)+"次操作", ButtonType.OK);
                 alert.setTitle("警告");
                 alert.setHeaderText("警告信息");
                 // 显示警告框
